@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CBSE Class 10 Study Planner</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#DCE6F1;--card:#fff;--navy:#19365B;--text:#19365B;--blue:#4472C4;--line:#c9d3e0;--hdrtxt:#fff;
+--tot:#EAF2F8;--done:#E2F0D9;--donet:#548235;--prog:#FFF2CC;--progt:#BF9000;--none:#E7E6E6;--nonet:#666;--pie1:#70AD47;--pie2:#FFC000;--pie3:#A6A6A6}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1b2d;--card:#182a44;--text:#e6edf7;--line:#2c4468;--navy:#0b2447;--tot:#1d3556;--done:#25402a;--donet:#9ccf7a;--prog:#4a3f14;--progt:#f2c94c;--none:#333b47;--nonet:#b5bcc8}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1b2d;--card:#182a44;--text:#e6edf7;--line:#2c4468;--navy:#0b2447;--tot:#1d3556;--done:#25402a;--donet:#9ccf7a;--prog:#4a3f14;--progt:#f2c94c;--none:#333b47;--nonet:#b5bcc8}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;text-align:center;padding:16px 12px}
+header .s{font-size:15px;font-weight:bold}header h1{margin:2px 0;font-size:24px}
+header .y{display:inline-block;margin-top:6px;font-size:11px;background:#DCE6F1;color:#19365B;padding:3px 14px;border-radius:12px}
+nav{display:flex;justify-content:center;gap:8px;padding:10px}
+nav button,.f button{font:inherit;font-size:13px;font-weight:bold;cursor:pointer;border:1px solid var(--blue);background:var(--card);color:var(--text);padding:7px 16px;border-radius:16px}
+nav button.on,.f button.on{background:var(--blue);color:#fff}
+main{max-width:1000px;margin:0 auto;padding:0 12px 24px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.c{border-radius:8px;padding:8px;text-align:center;font-size:11px;font-weight:bold}.c b{display:block;font-size:24px}
+.t{background:var(--tot)}.d{background:var(--done);color:var(--donet)}.p{background:var(--prog);color:var(--progt)}.n{background:var(--none);color:var(--nonet)}
+.f{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;display:grid;grid-template-columns:2fr repeat(4,1fr) 110px;gap:8px;align-items:center}
+.row.h{background:var(--navy);color:#fff;font-weight:bold;font-size:13px}
+.nm small{display:block;font-size:11px;color:var(--blue)}label{display:none;font-size:11px}
+select{width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);font-size:13px}
+select.Completed{background:var(--done);color:var(--donet)}select.InProgress{background:var(--prog);color:var(--progt)}
+.st{text-align:center;font-weight:bold;font-size:12px;padding:6px;border-radius:6px}
+.st.Completed{background:var(--done);color:var(--donet)}.st.InProgress{background:var(--prog);color:var(--progt)}.st.NotStarted{background:var(--none);color:var(--nonet)}
+h2{background:var(--navy);color:#fff;font-size:14px;padding:8px 12px;border-radius:6px;margin:16px 0 8px}
+.box{background:var(--card);border-radius:8px;padding:12px}
+.ov{display:flex;align-items:center;gap:12px}.ov b{font-size:22px;min-width:60px;text-align:right}
+.tr{flex:1;height:18px;background:var(--none);border-radius:9px;overflow:hidden}.fl{height:100%;background:var(--blue);transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:14px}th{background:var(--navy);color:#fff;font-size:12px;text-align:left;padding:8px}td{padding:8px;border-top:1px solid var(--line)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pie{width:170px;height:170px;border-radius:50%;margin:6px auto}
+.lg{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:12px;margin-top:8px}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.br{display:grid;grid-template-columns:100px 1fr 40px;gap:8px;align-items:center;font-size:12px;margin:8px 0}
+.br .tr{height:14px}
+.note{font-size:11px;opacity:.75;text-align:center;margin-top:16px}
+@media(max-width:720px){.row.h{display:none}.row{grid-template-columns:1fr 1fr}.nm,.st{grid-column:1/3}label{display:block}.cards{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}.br{grid-template-columns:90px 1fr 38px}}
+.auth{max-width:380px;margin:16px auto;width:calc(100% - 24px)}.auth h3{margin:0 0 8px}.auth input{width:100%;padding:10px;margin:6px 0;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);font-size:14px}
+.ab{display:flex;gap:8px;margin-top:6px}.ab button,.bar button,.vb button{font:inherit;font-size:13px;font-weight:bold;cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;padding:8px 14px;border-radius:16px;flex:1}.ab .alt{background:var(--card);color:var(--text)}
+.lnk{background:none;border:0;color:var(--blue);cursor:pointer;font-size:12px;margin-top:8px;padding:0}#msg{font-size:13px;margin:8px 0 0}
+.bar{max-width:1000px;margin:0 auto;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:12px}.bar span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis}.bar button{flex:none;padding:5px 12px}
+.vb{max-width:976px;margin:0 12px 6px;background:#FFF2CC;color:#7a5c00;border-radius:8px;padding:8px 12px;font-size:12px}.vb button{flex:none;padding:4px 10px;margin-left:4px}
+@media(min-width:1024px){.vb{margin:0 auto 6px}}
+</style>
+</head>
+<body>
+<header><div class="s">CLASS 10</div><h1>STUDY PLANNER</h1><div class="y">ACADEMIC SESSION 2026–27</div></header>
+<section id="auth" class="box auth"><h3>Log in to your planner</h3>
+<input id="em" type="email" placeholder="Email" autocomplete="email"><input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+<div class="ab"><button id="bin">Log in</button><button id="bup" class="alt">Create account</button></div>
+<button id="bfg" class="lnk">Forgot password?</button><p id="msg"></p></section>
+<div id="app" style="display:none"><div class="bar"><span id="who"></span><span id="sv"></span><button onclick="logout()">Log out</button></div>
+<div id="vb" class="vb" style="display:none"><span id="vt">Please verify your email. We sent you a link.</span> <button id="vr">Resend</button> <button id="vd">I’ve verified</button></div>
+<nav><button id="b-tracker" onclick="go('tracker')">Chapter Tracker</button><button id="b-dashboard" onclick="go('dashboard')">Dashboard</button></nav>
+<main>
+<section id="cards" class="cards"></section>
+<div id="v-tracker"><div class="f" id="f"></div><div id="list"></div></div>
+<div id="v-dashboard">
+<h2>OVERALL COMPLETION</h2><div class="box ov"><div class="tr"><div class="fl" id="ovf"></div></div><b id="ovp">0%</b></div>
+<h2>CHARTS</h2><div class="charts"><div class="box"><div class="pie" id="pie"></div><div class="lg" id="lg"></div></div><div class="box" id="bars"></div></div>
+<h2>SUBJECT PROGRESS</h2><div class="box"><table><thead><tr><th>SUBJECT</th><th>TOTAL</th><th>COMPLETED</th><th>PROGRESS %</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+<p class="note">Your progress is saved to your account.</p>
+</main></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendEmailVerification,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+const firebaseConfig={
+  apiKey:"AIzaSyCXfJRQSqD2Ydt5v8eZcypDwpOvid-U3Ps",
+  authDomain:"class10-study-planner-b9ec8.firebaseapp.com",
+  projectId:"class10-study-planner-b9ec8",
+  storageBucket:"class10-study-planner-b9ec8.firebasestorage.app",
+  messagingSenderId:"516272644918",
+  appId:"1:516272644918:web:b34dac68a7fde640730997"
+};
+const fbApp=initializeApp(firebaseConfig),auth=getAuth(fbApp),db=getFirestore(fbApp);
+let uid="",progress={},cloudOK=false,timer=null;
+
+const CHAPTERS = [
+  {"subject": "Mathematics", "chapter": "Real Numbers"},
+  {"subject": "Mathematics", "chapter": "Polynomials"},
+  {"subject": "Mathematics", "chapter": "Pair of Linear Equations in Two Variables"},
+  {"subject": "Mathematics", "chapter": "Quadratic Equations"},
+  {"subject": "Mathematics", "chapter": "Arithmetic Progressions"},
+  {"subject": "Mathematics", "chapter": "Triangles"},
+  {"subject": "Mathematics", "chapter": "Coordinate Geometry"},
+  {"subject": "Mathematics", "chapter": "Introduction to Trigonometry"},
+  {"subject": "Mathematics", "chapter": "Some Applications of Trigonometry"},
+  {"subject": "Mathematics", "chapter": "Circles"},
+  {"subject": "Mathematics", "chapter": "Areas Related to Circles"},
+  {"subject": "Mathematics", "chapter": "Surface Areas and Volumes"},
+  {"subject": "Mathematics", "chapter": "Statistics"},
+  {"subject": "Mathematics", "chapter": "Probability"},
+  {"subject": "Science", "chapter": "Chemical Reactions and Equations"},
+  {"subject": "Science", "chapter": "Acids, Bases and Salts"},
+  {"subject": "Science", "chapter": "Metals and Non-Metals"},
+  {"subject": "Science", "chapter": "Carbon and Its Compounds"},
+  {"subject": "Science", "chapter": "Life Processes"},
+  {"subject": "Science", "chapter": "Control and Coordination"},
+  {"subject": "Science", "chapter": "How do Organisms Reproduce?"},
+  {"subject": "Science", "chapter": "Heredity"},
+  {"subject": "Science", "chapter": "Light - Reflection and Refraction"},
+  {"subject": "Science", "chapter": "The Human Eye and the Colourful World"},
+  {"subject": "Science", "chapter": "Electricity"},
+  {"subject": "Science", "chapter": "Magnetic Effects of Electric Current"},
+  {"subject": "Science", "chapter": "Our Environment"},
+  {"subject": "Social Science", "chapter": "The Rise of Nationalism in Europe"},
+  {"subject": "Social Science", "chapter": "Nationalism in India"},
+  {"subject": "Social Science", "chapter": "The Making of a Global World"},
+  {"subject": "Social Science", "chapter": "The Age of Industrialisation"},
+  {"subject": "Social Science", "chapter": "Print Culture and the Modern World"},
+  {"subject": "Social Science", "chapter": "Resources and Development"},
+  {"subject": "Social Science", "chapter": "Forest and Wildlife Resources"},
+  {"subject": "Social Science", "chapter": "Water Resources"},
+  {"subject": "Social Science", "chapter": "Agriculture"},
+  {"subject": "Social Science", "chapter": "Minerals and Energy Resources"},
+  {"subject": "Social Science", "chapter": "Manufacturing Industries"},
+  {"subject": "Social Science", "chapter": "Lifelines of National Economy"},
+  {"subject": "Social Science", "chapter": "Power Sharing"},
+  {"subject": "Social Science", "chapter": "Federalism"},
+  {"subject": "Social Science", "chapter": "Gender, Religion and Caste"},
+  {"subject": "Social Science", "chapter": "Political Parties"},
+  {"subject": "Social Science", "chapter": "Outcomes of Democracy"},
+  {"subject": "Social Science", "chapter": "Development"},
+  {"subject": "Social Science", "chapter": "Sectors of the Indian Economy"},
+  {"subject": "Social Science", "chapter": "Money and Credit"},
+  {"subject": "Social Science", "chapter": "Globalisation and the Indian Economy"},
+  {"subject": "Social Science", "chapter": "Consumer Rights"},
+  {"subject": "English", "chapter": "A Letter to God"},
+  {"subject": "English", "chapter": "Nelson Mandela: Long Walk to Freedom"},
+  {"subject": "English", "chapter": "Two Stories about Flying"},
+  {"subject": "English", "chapter": "From the Diary of Anne Frank"},
+  {"subject": "English", "chapter": "Glimpses of India"},
+  {"subject": "English", "chapter": "Mijbil the Otter"},
+  {"subject": "English", "chapter": "Madam Rides the Bus"},
+  {"subject": "English", "chapter": "The Sermon at Benares"},
+  {"subject": "English", "chapter": "The Proposal"},
+  {"subject": "English", "chapter": "Dust of Snow"},
+  {"subject": "English", "chapter": "Fire and Ice"},
+  {"subject": "English", "chapter": "A Tiger in the Zoo"},
+  {"subject": "English", "chapter": "How to Tell Wild Animals"},
+  {"subject": "English", "chapter": "The Ball Poem"},
+  {"subject": "English", "chapter": "Amanda!"},
+  {"subject": "English", "chapter": "The Trees"},
+  {"subject": "English", "chapter": "Fog"},
+  {"subject": "English", "chapter": "The Tale of Custard the Dragon"},
+  {"subject": "English", "chapter": "For Anne Gregory"},
+  {"subject": "English", "chapter": "A Triumph of Surgery"},
+  {"subject": "English", "chapter": "The Thief's Story"},
+  {"subject": "English", "chapter": "The Midnight Visitor"},
+  {"subject": "English", "chapter": "A Question of Trust"},
+  {"subject": "English", "chapter": "Footprints Without Feet"},
+  {"subject": "English", "chapter": "The Making of a Scientist"},
+  {"subject": "English", "chapter": "The Necklace"},
+  {"subject": "English", "chapter": "Bholi"},
+  {"subject": "English", "chapter": "The Book That Saved the Earth"}
+];
+const SUBJECTS=["Mathematics","Science","Social Science","English","Sanskrit"];
+const KEY="cbse10_progress_v1",OPT=["Not Started","In Progress","Completed"],ACT=["Reading","Notes","Practice","Revision"];
+let filter="All";
+function save(){try{localStorage.setItem(KEY+":"+uid,JSON.stringify(progress))}catch(e){}queueCloud()}
+function calc(v){if(v.every(x=>x==="Completed"))return"Completed";if(v.every(x=>x==="Not Started"))return"Not Started";return"In Progress"}
+const id=c=>c.subject+"|"+c.chapter,cl=s=>s.replace(" ","");
+const vals=c=>{const v=progress[id(c)];return Array.isArray(v)&&v.length===4?v:["Not Started","Not Started","Not Started","Not Started"]};
+const pc=x=>Math.round(x*100)+"%";
+function stats(){const s={total:CHAPTERS.length,d:0,p:0,n:0},by={};SUBJECTS.forEach(k=>by[k]={name:k,total:0,done:0});
+CHAPTERS.forEach(c=>{const st=calc(vals(c));if(st==="Completed")s.d++;else if(st==="In Progress")s.p++;else s.n++;
+by[c.subject]=by[c.subject]||{name:c.subject,total:0,done:0};by[c.subject].total++;if(st==="Completed")by[c.subject].done++});
+s.subs=Object.values(by).filter(x=>x.total>0);s.pct=s.total?s.d/s.total:0;return s}
+function cards(){const s=stats();document.getElementById("cards").innerHTML=
+`<div class="c t">TOTAL CHAPTERS<b>${s.total}</b></div><div class="c d">COMPLETED<b>${s.d}</b></div><div class="c p">IN PROGRESS<b>${s.p}</b></div><div class="c n">NOT STARTED<b>${s.n}</b></div>`;return s}
+function dash(){const s=cards();ovf.style.width=pc(s.pct);ovp.textContent=pc(s.pct);
+const a=s.d/s.total*360,b=a+s.p/s.total*360;
+pie.style.background=`conic-gradient(var(--pie1) 0 ${a}deg,var(--pie2) ${a}deg ${b}deg,var(--pie3) ${b}deg 360deg)`;
+lg.innerHTML=`<span><i style="background:var(--pie1)"></i>Completed ${s.d}</span><span><i style="background:var(--pie2)"></i>In Progress ${s.p}</span><span><i style="background:var(--pie3)"></i>Not Started ${s.n}</span>`;
+bars.innerHTML=s.subs.map(x=>`<div class="br"><span>${x.name}</span><div class="tr"><div class="fl" style="width:${pc(x.done/x.total)}"></div></div><b>${pc(x.done/x.total)}</b></div>`).join("");
+tb.innerHTML=s.subs.map(x=>`<tr><td>${x.name}</td><td>${x.total}</td><td>${x.done}</td><td>${pc(x.done/x.total)}</td></tr>`).join("")}
+function filters(){f.innerHTML="";["All",...new Set(CHAPTERS.map(c=>c.subject))].forEach(k=>{const b=document.createElement("button");b.textContent=k;if(k===filter)b.className="on";b.onclick=()=>{filter=k;filters();list_()};f.appendChild(b)})}
+function list_(){list.innerHTML='<div class="row h"><div>Chapter</div><div>Reading</div><div>Notes</div><div>Practice</div><div>Revision</div><div>Status</div></div>';
+CHAPTERS.filter(c=>filter==="All"||c.subject===filter).forEach(c=>{const v=vals(c),st=calc(v),r=document.createElement("div");r.className="row";
+r.innerHTML=`<div class="nm">${c.chapter}<small>${c.subject}</small></div>`+ACT.map((a,i)=>`<div><label>${a}</label><select data-i="${i}" class="${cl(v[i])}">${OPT.map(o=>`<option${o===v[i]?" selected":""}>${o}</option>`).join("")}</select></div>`).join("")+`<div class="st ${cl(st)}">${st}</div>`;
+r.querySelectorAll("select").forEach(sel=>sel.onchange=()=>{const nv=vals(c).slice();nv[+sel.dataset.i]=sel.value;progress[id(c)]=nv;save();sel.className=cl(sel.value);const s2=calc(nv),e=r.querySelector(".st");e.textContent=s2;e.className="st "+cl(s2);cards()});
+list.appendChild(r)})}
+function go(v){location.hash=v}
+function show(){const v=location.hash==="#dashboard"?"dashboard":"tracker";
+document.getElementById("v-tracker").style.display=v==="tracker"?"":"none";document.getElementById("v-dashboard").style.display=v==="dashboard"?"":"none";
+document.getElementById("b-tracker").className=v==="tracker"?"on":"";document.getElementById("b-dashboard").className=v==="dashboard"?"on":"";
+if(v==="dashboard")dash();else cards()}
+window.go=go;addEventListener("hashchange",show);
+
+const $=id=>document.getElementById(id);
+const say=(t,ok)=>{$("msg").textContent=t;$("msg").style.color=ok?"#548235":"#c0392b"};
+const ERR={"auth/invalid-credential":"Wrong email or password.","auth/invalid-email":"That email address doesn’t look right.","auth/email-already-in-use":"This email already has an account. Use Log in.","auth/weak-password":"Password must be at least 6 characters.","auth/missing-password":"Please type a password.","auth/too-many-requests":"Too many tries. Please wait a few minutes.","auth/network-request-failed":"No internet connection.","auth/operation-not-supported-in-this-environment":"Open this page through its website address, not by double-clicking the file.","auth/unauthorized-domain":"This website address is not approved in Firebase yet."};
+const fail=e=>say(ERR[e.code]||("Something went wrong ("+(e.code||e.message)+")."));
+const val=()=>[$("em").value.trim(),$("pw").value];
+$("bin").onclick=async()=>{say("");try{await signInWithEmailAndPassword(auth,...val())}catch(e){fail(e)}};
+$("bup").onclick=async()=>{say("");try{const c=await createUserWithEmailAndPassword(auth,...val());await sendEmailVerification(c.user)}catch(e){fail(e)}};
+$("bfg").onclick=async()=>{const m=$("em").value.trim();if(!m){say("Type your email first.");return}try{await sendPasswordResetEmail(auth,m);say("Reset link sent. Check your inbox and spam folder.",1)}catch(e){fail(e)}};
+$("vr").onclick=async()=>{try{await sendEmailVerification(auth.currentUser);$("vt").textContent="Link sent again. Check inbox and spam."}catch(e){$("vt").textContent="Please wait a minute and try again."}};
+$("vd").onclick=async()=>{try{await auth.currentUser.reload();await auth.currentUser.getIdToken(true);$("vb").style.display=auth.currentUser.emailVerified?"none":"";if(!auth.currentUser.emailVerified)$("vt").textContent="Not verified yet."}catch(e){}};
+window.logout=()=>signOut(auth);
+
+function localCache(){try{return JSON.parse(localStorage.getItem(KEY+":"+uid)||localStorage.getItem(KEY))||{}}catch(e){return{}}}
+async function push(){
+  if(!uid||!cloudOK)return;
+  try{await setDoc(doc(db,"progress",uid),{json:JSON.stringify(progress),updatedAt:serverTimestamp()});$("sv").textContent="Saved ✓"}
+  catch(e){$("sv").textContent="Not saved. Check internet."}
+}
+function queueCloud(){clearTimeout(timer);$("sv").textContent="Saving…";timer=setTimeout(()=>{timer=null;push()},1200)}
+addEventListener("pagehide",()=>{if(timer){clearTimeout(timer);timer=null;push()}});
+
+async function loadCloud(u){
+  cloudOK=false;
+  try{
+    const ur=doc(db,"users",u.uid);
+    if(!(await getDoc(ur)).exists())await setDoc(ur,{email:u.email,paid:false,createdAt:serverTimestamp()});
+    const pr=await getDoc(doc(db,"progress",u.uid));
+    cloudOK=true;
+    if(pr.exists()){try{progress=JSON.parse(pr.data().json)||{}}catch(e){progress={}}}
+    else{progress=localCache();if(Object.keys(progress).length)await push()}
+    $("sv").textContent="Synced ✓";
+  }catch(e){progress=localCache();$("sv").textContent="Could not reach your account. Changes are not being saved online."}
+}
+onAuthStateChanged(auth,async u=>{
+  if(!u){uid="";progress={};cloudOK=false;$("auth").style.display="";$("app").style.display="none";$("pw").value="";return}
+  uid=u.uid;$("who").textContent=u.email;$("vb").style.display=u.emailVerified?"none":"";
+  $("auth").style.display="none";$("app").style.display="";
+  await loadCloud(u);filters();list_();show();
+});
+</script>
+</body>
+</html>
