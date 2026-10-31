@@ -49,6 +49,17 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{background:var(--nav
 .bar{max-width:1000px;margin:0 auto;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:12px}.bar span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis}.bar button{flex:none;padding:5px 12px}
 .vb{max-width:976px;margin:0 12px 6px;background:#FFF2CC;color:#7a5c00;border-radius:8px;padding:8px 12px;font-size:12px}.vb button{flex:none;padding:4px 10px;margin-left:4px}
 @media(min-width:1024px){.vb{margin:0 auto 6px}}
+  .payment-box{max-width:500px;margin:20px auto;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:12px;text-align:center}
+.payment-box h2{margin-top:0}
+.payment-box input{width:100%;padding:11px;margin:8px 0;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)}
+.pay-btn{display:inline-block;background:#198754;color:white;padding:11px 20px;border-radius:8px;text-decoration:none;font-weight:bold;margin:10px 0}
+.admin-box{background:var(--card);padding:14px;border-radius:10px;margin:12px 0;overflow-x:auto}
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.admin-stats .c{background:var(--tot);padding:12px;border-radius:8px;text-align:center}
+.admin-action{padding:7px 12px;border:0;border-radius:6px;cursor:pointer;margin:3px}
+.approve{background:#198754;color:white}
+.reject{background:#dc3545;color:white}
+@media(max-width:600px){.admin-stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -59,6 +70,49 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{background:var(--nav
 <button id="bfg" class="lnk">Forgot password?</button><p id="msg"></p></section>
 <div id="app" style="display:none"><div class="bar"><span id="who"></span><span id="sv"></span><button onclick="logout()">Log out</button></div>
 <div id="vb" class="vb" style="display:none"><span id="vt">Please verify your email. We sent you a link.</span> <button id="vr">Resend</button> <button id="vd">I’ve verified</button></div>
+  <section id="paymentGate" class="payment-box" style="display:none">
+  <h2>Unlock Your Study Planner</h2>
+  <h1>₹40</h1>
+  <p>One-time payment for lifetime access.</p>
+
+  <p><b>UPI ID</b></p>
+  <p id="upiDisplay">7091241218@fam</p>
+
+  <button class="admin-action" onclick="copyUPI()">Copy UPI ID</button>
+
+  <p>Or pay directly using your UPI app:</p>
+
+  <a class="pay-btn"
+     href="upi://pay?pa=7091241218%40fam&pn=Class%2010%20Study%20Planner&am=40.00&cu=INR&tn=Lifetime%20Access">
+     Pay ₹40
+  </a>
+
+  <p>After payment, enter your UTR/reference number:</p>
+  <input id="utrInput" placeholder="Enter UTR / transaction reference">
+
+  <button id="submitPayment" class="pay-btn" type="button">
+    Submit Payment Request
+  </button>
+
+  <p id="paymentMsg"></p>
+  <p id="paymentStatus">Payment status: Not paid</p> <button class="admin-action" id="refreshPayment" type="button">   Refresh Payment Status </button>
+</section>
+
+<section id="adminPanel" style="display:none">
+  <h2>ADMIN DASHBOARD</h2>
+  <div class="admin-box">
+    <div class="admin-stats">
+      <div class="c">TOTAL STUDENTS<b id="totalStudents">0</b></div>
+      <div class="c">PAID STUDENTS<b id="paidStudents">0</b></div>
+      <div class="c">PENDING REQUESTS<b id="pendingRequests">0</b></div>
+      <div class="c">REVENUE<b id="totalRevenue">₹0</b></div>
+    </div>
+  </div>
+  <h2>PAYMENT REQUESTS</h2>
+  <div class="admin-box">
+    <div id="requestList">Loading requests...</div>
+  </div>
+</section>
 <nav><button id="b-tracker" onclick="go('tracker')">Chapter Tracker</button><button id="b-dashboard" onclick="go('dashboard')">Dashboard</button></nav>
 <main>
 <section id="cards" class="cards"></section>
@@ -73,7 +127,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{background:var(--nav
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendEmailVerification,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+import {   getFirestore,   doc,   getDoc,   setDoc,   serverTimestamp,   collection,   getDocs,   query,   where,   updateDoc,   writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 const firebaseConfig={
   apiKey:"AIzaSyCXfJRQSqD2Ydt5v8eZcypDwpOvid-U3Ps",
   authDomain:"class10-study-planner-b9ec8.firebaseapp.com",
@@ -209,7 +263,208 @@ $("vr").onclick=async()=>{try{await sendEmailVerification(auth.currentUser);$("v
 $("vd").onclick=async()=>{try{await auth.currentUser.reload();await auth.currentUser.getIdToken(true);$("vb").style.display=auth.currentUser.emailVerified?"none":"";if(!auth.currentUser.emailVerified)$("vt").textContent="Not verified yet."}catch(e){}};
 window.logout=()=>signOut(auth);
 
-function localCache(){try{return JSON.parse(localStorage.getItem(KEY+":"+uid)||localStorage.getItem(KEY))||{}}catch(e){return{}}}
+  const UPI_ID = "7091241218@fam";
+const ADMIN_EMAIL = "basudevmukherjee45@gmail.com";
+
+window.copyUPI = async () => {
+  try {
+    await navigator.clipboard.writeText(UPI_ID);
+    $("paymentMsg").textContent = "UPI ID copied!";
+  } catch(e) {
+    $("paymentMsg").textContent = "Please copy: " + UPI_ID;
+  }
+};
+
+$("submitPayment").onclick = async () => {
+  const utr = $("utrInput").value.trim();
+
+  if (!uid || !auth.currentUser) {
+    $("paymentMsg").textContent = "Please log in first.";
+    return;
+  }
+
+  if (!/^[A-Za-z0-9]{8,30}$/.test(utr)) {
+    $("paymentMsg").textContent = "Enter a valid UTR/reference number.";
+    return;
+  }
+
+  const btn = $("submitPayment");
+  btn.disabled = true;
+
+  try {
+    const existing = await getDocs(
+      query(collection(db, "paymentRequests"),
+      where("uid", "==", uid))
+    );
+
+    const pending = existing.docs.some(
+      d => d.data().status === "pending"
+    );
+
+    if (pending) {
+      $("paymentMsg").textContent =
+        "You already have a pending request.";
+      return;
+    }
+
+    await addDoc(collection(db, "paymentRequests"), {
+      uid: uid,
+      email: auth.currentUser.email,
+      utr: utr,
+      amount: 40,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    $("paymentMsg").textContent =
+      "Request submitted! Awaiting admin verification.";
+    $("paymentStatus").textContent = "Payment status: Pending";
+    $("utrInput").value = "";
+
+  } catch(e) {
+    $("paymentMsg").textContent =
+      "Could not submit. Please try again.";
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+$("refreshPayment").onclick = async () => {
+  const btn = $("refreshPayment");
+
+  if (!auth.currentUser) {
+    $("paymentMsg").textContent = "Please log in first.";
+    return;
+  }
+
+  btn.disabled = true;
+  $("paymentMsg").textContent = "Checking payment status...";
+
+  try {
+    const access = await loadCloud(auth.currentUser);
+
+    if (access) {
+      await loadAdmin();
+      filters();
+      list_();
+      show();
+      $("paymentMsg").textContent = "Payment verified! Planner unlocked.";
+    } else {
+      $("paymentMsg").textContent = "Payment is not approved yet.";
+    }
+  } catch(e) {
+    $("paymentMsg").textContent = "Could not refresh. Try again.";
+  } finally {
+    btn.disabled = false;
+  }
+};
+  async function loadAdmin() {
+  if (
+    !auth.currentUser ||
+    auth.currentUser.email !== ADMIN_EMAIL ||
+    !auth.currentUser.emailVerified
+  ) {
+    $("adminPanel").style.display = "none";
+    return;
+  }
+
+  $("adminPanel").style.display = "";
+
+  try {
+    const usersSnap = await getDocs(collection(db, "users"));
+    const requestsSnap = await getDocs(collection(db, "paymentRequests"));
+
+    const paidCount = usersSnap.docs.filter(
+      d => d.data().paid === true
+    ).length;
+
+    const pending = requestsSnap.docs.filter(
+      d => d.data().status === "pending"
+    );
+
+    $("totalStudents").textContent = usersSnap.size;
+    $("paidStudents").textContent = paidCount;
+    $("pendingRequests").textContent = pending.length;
+    $("totalRevenue").textContent = "₹" + (paidCount * 40);
+
+    const list = $("requestList");
+    list.replaceChildren();
+
+    if (!pending.length) {
+      list.textContent = "No pending payment requests.";
+      return;
+    }
+
+    pending.forEach(r => {
+      const data = r.data();
+      const item = document.createElement("div");
+      item.style.padding = "12px";
+      item.style.borderBottom = "1px solid var(--line)";
+
+      const details = document.createElement("p");
+      details.textContent =
+        "Email: " + data.email +
+        " | UTR: " + data.utr +
+        " | Amount: ₹" + data.amount;
+
+      const approve = document.createElement("button");
+      approve.className = "admin-action approve";
+      approve.textContent = "Approve";
+
+      const reject = document.createElement("button");
+      reject.className = "admin-action reject";
+      reject.textContent = "Reject";
+
+      approve.onclick = async () => {
+        if (!confirm("Have you verified this ₹40 payment in your payment account?")) return;
+
+        approve.disabled = true;
+        try {
+          const batch = writeBatch(db);
+          batch.update(doc(db, "users", data.uid), {
+            paid: true,
+            paidAt: serverTimestamp()
+          });
+          batch.update(doc(db, "paymentRequests", r.id), {
+            status: "approved",
+            approvedAt: serverTimestamp()
+          });
+          await batch.commit();
+          alert("Payment approved. Lifetime access granted.");
+          await loadAdmin();
+        } catch(e) {
+          alert("Approval failed. Check Firebase security rules.");
+          approve.disabled = false;
+        }
+      };
+
+      reject.onclick = async () => {
+        if (!confirm("Reject this payment request?")) return;
+
+        reject.disabled = true;
+        try {
+          await updateDoc(doc(db, "paymentRequests", r.id), {
+            status: "rejected",
+            rejectedAt: serverTimestamp()
+          });
+          await loadAdmin();
+        } catch(e) {
+          alert("Rejection failed. Check Firebase security rules.");
+          reject.disabled = false;
+        }
+      };
+
+      item.append(details, approve, reject);
+      list.appendChild(item);
+    });
+
+  } catch(e) {
+    $("requestList").textContent =
+      "Could not load admin data. Check Firestore security rules.";
+    console.error(e);
+  }
+}function localCache(){try{return JSON.parse(localStorage.getItem(KEY+":"+uid)||localStorage.getItem(KEY))||{}}catch(e){return{}}}
 async function push(){
   if(!uid||!cloudOK)return;
   try{await setDoc(doc(db,"progress",uid),{json:JSON.stringify(progress),updatedAt:serverTimestamp()});$("sv").textContent="Saved ✓"}
@@ -218,7 +473,45 @@ async function push(){
 function queueCloud(){clearTimeout(timer);$("sv").textContent="Saving…";timer=setTimeout(()=>{timer=null;push()},1200)}
 addEventListener("pagehide",()=>{if(timer){clearTimeout(timer);timer=null;push()}});
 
-async function loadCloud(u){
+async function loadCloud(u){   cloudOK=false;    try {     const ur=doc(db,"users",u.uid);     let userSnap=await getDoc(ur);      if(!userSnap.exists()){       await setDoc(ur,{         email:u.email,         paid:false,         createdAt:serverTimestamp()       });       userSnap=await getDoc(ur);     }      const admin =       u.email===ADMIN_EMAIL && u.emailVerified;      const paid =       userSnap.data().paid===true;      const hasAccess=admin || paid;      $("paymentGate").style.display=hasAccess?"none":"";     document.querySelector("nav").style.display=hasAccess?"":"none";     document.querySelector("main").style.display=hasAccess?"":"none"; if(!hasAccess){
+  progress={};
+  cloudOK=false;
+
+  try {
+    const requests = await getDocs(
+      query(
+        collection(db,"paymentRequests"),
+        where("uid","==",u.uid)
+      )
+    );
+
+    let status = "Not paid";
+
+    if(!requests.empty){
+      const latest = requests.docs
+        .map(d => d.data())
+        .sort((a,b) =>
+          (b.createdAt?.toMillis?.() || 0) -
+          (a.createdAt?.toMillis?.() || 0)
+        )[0];
+
+      status = latest.status === "pending"
+        ? "Payment pending verification"
+        : latest.status === "rejected"
+        ? "Payment request rejected"
+        : "Payment status: Not paid";
+    }
+
+    $("paymentStatus").textContent = status;
+
+  } catch(e) {
+    $("paymentStatus").textContent =
+      "Could not load payment status.";
+  }
+
+  $("sv").textContent="Payment required";
+  return false;
+}          const pr=await getDoc(doc(db,"progress",u.uid));     cloudOK=true;      if(pr.exists()){       try{         progress=JSON.parse(pr.data().json)||{};       }catch(e){         progress={};       }     }else{       progress=localCache();       if(Object.keys(progress).length)await push();     }      $("sv").textContent="Synced ✓";     return true;    }catch(e){     cloudOK=false;     $("paymentGate").style.display="none";     document.querySelector("nav").style.display="none";     document.querySelector("main").style.display="none";     $("sv").textContent="Could not verify account access.";     console.error(e);     return false;   } }
   cloudOK=false;
   try{
     const ur=doc(db,"users",u.uid);
@@ -234,7 +527,7 @@ onAuthStateChanged(auth,async u=>{
   if(!u){uid="";progress={};cloudOK=false;$("auth").style.display="";$("app").style.display="none";$("pw").value="";return}
   uid=u.uid;$("who").textContent=u.email;$("vb").style.display=u.emailVerified?"none":"";
   $("auth").style.display="none";$("app").style.display="";
-  await loadCloud(u);filters();list_();show();
+  const access=await loadCloud(u); await loadAdmin();  if(access){   filters();   list_();   show(); }
 });
 </script>
 </body>
