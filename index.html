@@ -283,6 +283,11 @@ $("submitPayment").onclick = async () => {
     return;
   }
 
+  if (!auth.currentUser.emailVerified) {
+    $("paymentMsg").textContent = "Please verify your email first, then click I’ve verified at the top.";
+    return;
+  }
+
   if (!/^[A-Za-z0-9]{8,30}$/.test(utr)) {
     $("paymentMsg").textContent = "Enter a valid UTR/reference number.";
     return;
@@ -512,17 +517,6 @@ async function loadCloud(u){   cloudOK=false;    try {     const ur=doc(db,"user
   $("sv").textContent="Payment required";
   return false;
 }          const pr=await getDoc(doc(db,"progress",u.uid));     cloudOK=true;      if(pr.exists()){       try{         progress=JSON.parse(pr.data().json)||{};       }catch(e){         progress={};       }     }else{       progress=localCache();       if(Object.keys(progress).length)await push();     }      $("sv").textContent="Synced ✓";     return true;    }catch(e){     cloudOK=false;     $("paymentGate").style.display="none";     document.querySelector("nav").style.display="none";     document.querySelector("main").style.display="none";     $("sv").textContent="Could not verify account access.";     console.error(e);     return false;   } }
-  cloudOK=false;
-  try{
-    const ur=doc(db,"users",u.uid);
-    if(!(await getDoc(ur)).exists())await setDoc(ur,{email:u.email,paid:false,createdAt:serverTimestamp()});
-    const pr=await getDoc(doc(db,"progress",u.uid));
-    cloudOK=true;
-    if(pr.exists()){try{progress=JSON.parse(pr.data().json)||{}}catch(e){progress={}}}
-    else{progress=localCache();if(Object.keys(progress).length)await push()}
-    $("sv").textContent="Synced ✓";
-  }catch(e){progress=localCache();$("sv").textContent="Could not reach your account. Changes are not being saved online."}
-}
 onAuthStateChanged(auth,async u=>{
   if(!u){uid="";progress={};cloudOK=false;$("auth").style.display="";$("app").style.display="none";$("pw").value="";return}
   uid=u.uid;$("who").textContent=u.email;$("vb").style.display=u.emailVerified?"none":"";
