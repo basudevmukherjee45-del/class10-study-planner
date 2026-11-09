@@ -253,4 +253,171 @@ window.go=go;addEventListener("hashchange",show);
 
 const $=id=>document.getElementById(id);
 const say=(t,ok)=>{$("msg").textContent=t;$("msg").style.color=ok?"#548235":"#c0392b"};
-const ERR={"auth/invalid-credential":"Wrong email or password.","auth/invalid-email":"That email address doesn’t look right.","auth/email-already-in-use":"This email already has an account. Use Log in.","
+const ERR={"auth/invalid-credential":"Wrong email or password.","auth/invalid-email":"That email address doesn’t look right.","auth/email-already-in-use":"This email already has an account. Use Log in.","auth/weak-password":"Password must be at least 6 characters.","auth/missing-password":"Please enter your password.","auth/missing-email":"Please enter your email.","auth/too-many-requests":"Too many attempts. Please try again later.","auth/network-request-failed":"Network error. Check your internet connection."};
+const ADMIN="basudevmukherjee45@gmail.com",PRICE=10;
+const errText=e=>ERR[e.code]||("Something went wrong: "+(e.code||e.message));
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let isAdmin=false;
+
+function queueCloud(){
+  if(!cloudOK||!uid)return;
+  clearTimeout(timer);$("sv").textContent="Saving…";
+  const u=uid,data=JSON.stringify(progress);
+  timer=setTimeout(async()=>{
+    try{await setDoc(doc(db,"progress",u),{data:data,updatedAt:serverTimestamp()});$("sv").textContent="Saved"}
+    catch(e){$("sv").textContent="Not saved"}
+  },800);
+}
+async function loadProgress(){
+  progress={};cloudOK=false;
+  try{const l=localStorage.getItem(KEY+":"+uid);if(l)progress=JSON.parse(l)||{}}catch(e){}
+  try{
+    const s=await getDoc(doc(db,"progress",uid));
+    if(s.exists()&&s.data().data){const c=JSON.parse(s.data().data);if(c&&typeof c==="object")progress=c}
+    cloudOK=true;$("sv").textContent="Saved";
+    if(!s.exists())queueCloud();
+  }catch(e){$("sv").textContent="Offline (not synced)"}
+}
+async function ensureUser(user){
+  const ref=doc(db,"users",user.uid);
+  let s=await getDoc(ref);
+  if(!s.exists()){
+    await setDoc(ref,{email:user.email,paid:false,createdAt:serverTimestamp()});
+    s=await getDoc(ref);
+  }
+  return s.data();
+}
+async function paymentStatus(){
+  const el=$("paymentStatus");
+  try{
+    const qs=await getDocs(query(collection(db,"paymentRequests"),where("uid","==",uid)));
+    const rows=qs.docs.map(d=>d.data());
+    if(rows.some(r=>r.status==="pending")){el.textContent="Payment status: Pending verification";return}
+    if(rows.some(r=>r.status==="rejected")){el.textContent="Payment status: Rejected. Please check your UTR and submit again.";return}
+    el.textContent="Payment status: Not paid";
+  }catch(e){el.textContent="Payment status: Not paid"}
+}
+function showPlanner(on){
+  document.querySelector("nav").style.display=on?"":"none";
+  document.querySelector("main").style.display=on?"":"none";
+}
+async function enter(user){
+  uid=user.uid;
+  $("auth").style.display="none";$("app").style.display="";
+  $("who").textContent=user.email;
+  $("vb").style.display=user.emailVerified?"none":"";
+  isAdmin=user.email===ADMIN&&user.emailVerified===true;
+  let paid=false;
+  try{const u=await ensureUser(user);paid=isAdmin||u.paid===true}
+  catch(e){paid=false;$("sv").textContent="Could not load account"}
+  if(paid){
+    $("paymentGate").style.display="none";
+    await loadProgress();
+    showPlanner(true);filters();list_();show();
+  }else{
+    progress={};cloudOK=false;
+    showPlanner(false);
+    $("paymentGate").style.display="";
+    await paymentStatus();
+  }
+  $("adminPanel").style.display=isAdmin?"":"none";
+  if(isAdmin)loadAdmin();
+}
+async function loadAdmin(){
+  const rl=$("requestList");
+  try{
+    const [us,rs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"paymentRequests"))]);
+    let paidN=0;us.forEach(d=>{if(d.data().paid===true)paidN++});
+    let revenue=0;const pending=[];
+    rs.forEach(d=>{const r=d.data();
+      if(r.status==="approved")revenue+=Number(r.amount)||0;
+      if(r.status==="pending")pending.push({id:d.id,...r});
+    });
+    $("totalStudents").textContent=us.size;
+    $("paidStudents").textContent=paidN;
+    $("pendingRequests").textContent=pending.length;
+    $("totalRevenue").textContent="₹"+revenue;
+    rl.innerHTML=pending.length?pending.map(r=>`<div style="border-bottom:1px solid var(--line);padding:8px 0;text-align:left"><div><b>${esc(r.email)}</b></div><div>UTR: ${esc(r.utr)} · ₹${esc(r.amount)}</div><div><button class="admin-action approve" data-act="approved" data-id="${esc(r.id)}" data-uid="${esc(r.uid)}">Approve</button><button class="admin-action reject" data-act="rejected" data-id="${esc(r.id)}" data-uid="${esc(r.uid)}">Reject</button></div></div>`).join(""):"No pending requests.";
+  }catch(e){rl.textContent="Could not load requests: "+(e.code||e.message)}
+}
+$("requestList").addEventListener("click",async ev=>{
+  const b=ev.target.closest("button[data-act]");if(!b||!isAdmin)return;
+  b.disabled=true;
+  try{
+    const batch=writeBatch(db);
+    batch.update(doc(db,"paymentRequests",b.dataset.id),{status:b.dataset.act});
+    if(b.dataset.act==="approved")batch.update(doc(db,"users",b.dataset.uid),{paid:true});
+    await batch.commit();
+  }catch(e){alert("Action failed: "+(e.code||e.message))}
+  loadAdmin();
+});
+
+$("bin").onclick=async()=>{
+  const e=$("em").value.trim(),p=$("pw").value;say("");
+  if(!e||!p){say("Enter your email and password.");return}
+  try{await signInWithEmailAndPassword(auth,e,p)}catch(x){say(errText(x))}
+};
+$("bup").onclick=async()=>{
+  const e=$("em").value.trim(),p=$("pw").value;say("");
+  if(!e||!p){say("Enter your email and password.");return}
+  if(p.length<6){say("Password must be at least 6 characters.");return}
+  try{
+    const c=await createUserWithEmailAndPassword(auth,e,p);
+    try{await sendEmailVerification(c.user)}catch(x){}
+  }catch(x){say(errText(x))}
+};
+$("bfg").onclick=async()=>{
+  const e=$("em").value.trim();
+  if(!e){say("Type your email above first, then tap Forgot password.");return}
+  try{await sendPasswordResetEmail(auth,e);say("Password reset link sent. Check your email.",true)}
+  catch(x){say(errText(x))}
+};
+$("vr").onclick=async()=>{
+  try{await sendEmailVerification(auth.currentUser);$("vt").textContent="Verification email sent. Check your inbox (and spam)."}
+  catch(x){$("vt").textContent=errText(x)}
+};
+$("vd").onclick=async()=>{
+  try{await auth.currentUser.reload();await enter(auth.currentUser)}catch(x){$("vt").textContent=errText(x)}
+};
+$("refreshPayment").onclick=async()=>{
+  try{await auth.currentUser.reload();await enter(auth.currentUser)}catch(x){$("paymentMsg").textContent=errText(x)}
+};
+$("submitPayment").onclick=async()=>{
+  const m=$("paymentMsg"),user=auth.currentUser,utr=$("utrInput").value.trim();
+  m.style.color="#c0392b";
+  if(!user)return;
+  if(!user.emailVerified){m.textContent="Please verify your email first, then tap “I’ve verified”.";return}
+  if(utr.length<8||utr.length>30){m.textContent="UTR must be 8 to 30 characters.";return}
+  $("submitPayment").disabled=true;
+  try{
+    const ex=await getDocs(query(collection(db,"paymentRequests"),where("uid","==",user.uid)));
+    if(ex.docs.some(d=>d.data().status==="pending")){m.textContent="You already have a pending request. Please wait for approval.";return}
+    await addDoc(collection(db,"paymentRequests"),{uid:user.uid,email:user.email,utr:utr,amount:PRICE,status:"pending",createdAt:serverTimestamp()});
+    m.style.color="#548235";m.textContent="Request submitted. Access will unlock once the payment is verified.";
+    $("utrInput").value="";await paymentStatus();
+  }catch(x){m.textContent="Could not submit: "+(x.code||x.message)}
+  finally{$("submitPayment").disabled=false}
+};
+window.copyUPI=async()=>{
+  const t="7091241218@fam";
+  try{await navigator.clipboard.writeText(t);alert("UPI ID copied")}
+  catch(e){prompt("Copy this UPI ID:",t)}
+};
+window.logout=async()=>{
+  clearTimeout(timer);
+  try{await signOut(auth)}catch(e){}
+};
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    uid="";progress={};cloudOK=false;isAdmin=false;
+    $("app").style.display="none";$("auth").style.display="";
+    $("pw").value="";return;
+  }
+  await enter(user);
+});
+filters();list_();show();
+</script>
+</body>
+</html>
+
